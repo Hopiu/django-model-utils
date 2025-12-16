@@ -27,7 +27,7 @@ from model_utils.models import (
 from model_utils.tracker import FieldInstanceTracker, FieldTracker, ModelTracker
 from tests.fields import MutableField
 
-ModelT = TypeVar('ModelT', bound=models.Model, covariant=True)
+ModelT = TypeVar('ModelT', bound=models.Model)
 
 
 class InheritanceManagerTestRelated(models.Model):
@@ -44,7 +44,7 @@ class InheritanceManagerTestParent(models.Model):
     related_self = models.OneToOneField(
         "self", related_name="imtests_self", null=True,
         on_delete=models.CASCADE)
-    objects: ClassVar[InheritanceManager[InheritanceManagerTestParent]] = InheritanceManager()
+    objects: ClassVar[InheritanceManager[InheritanceManagerTestParent]] = InheritanceManager()  # type: ignore[assignment]
 
     def __str__(self) -> str:
         return "{}({})".format(
@@ -56,7 +56,7 @@ class InheritanceManagerTestParent(models.Model):
 class InheritanceManagerTestChild1(InheritanceManagerTestParent):
     non_related_field_using_descriptor_2 = models.FileField(upload_to="test")
     normal_field_2 = models.TextField()
-    objects: ClassVar[InheritanceManager[InheritanceManagerTestParent]] = InheritanceManager()
+    objects: ClassVar[InheritanceManager[InheritanceManagerTestParent]] = InheritanceManager()  # type: ignore[assignment]
 
 
 class InheritanceManagerTestGrandChild1(InheritanceManagerTestChild1):
@@ -184,10 +184,10 @@ class Post(models.Model):
     order = models.IntegerField()
 
     objects = models.Manager()
-    public: ClassVar[QueryManager[Post]] = QueryManager(published=True)
-    public_confirmed: ClassVar[QueryManager[Post]] = QueryManager(
+    public: ClassVar[QueryManager[Post]] = QueryManager(published=True)  # type: ignore[assignment]
+    public_confirmed: ClassVar[QueryManager[Post]] = QueryManager(  # type: ignore[assignment]
         models.Q(published=True) & models.Q(confirmed=True))
-    public_reversed: ClassVar[QueryManager[Post]] = QueryManager(
+    public_reversed: ClassVar[QueryManager[Post]] = QueryManager(  # type: ignore[assignment]
         published=True).order_by("-order")
 
     class Meta:

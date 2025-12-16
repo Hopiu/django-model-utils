@@ -10,23 +10,29 @@ from django.db.models.fields.related import OneToOneField, OneToOneRel
 from django.db.models.query import ModelIterable, QuerySet
 from django.db.models.sql.datastructures import Join
 
-ModelT = TypeVar('ModelT', bound=models.Model, covariant=True)
+ModelT = TypeVar('ModelT', bound=models.Model)
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from django.db.models.query import BaseIterable
 
-    # Generic base for mixin classes - enables type checking support
-    # while avoiding runtime issues with __class__ assignment
-    # (e.g., when used with django-modeltranslation).
-    _GenericMixin = Generic[ModelT]
+    # During type checking, _GenericMixin is just an empty base class.
+    # The actual generic behavior comes from Generic[ModelT] in the mixin classes.
+    class _GenericMixin:
+        """Type checking placeholder - generics handled by Generic[ModelT]."""
+        pass
 else:
     # At runtime, use a subscriptable but non-Generic class to avoid
     # __class__ assignment issues that occur when Generic[T] is in
     # the class hierarchy (e.g., django-modeltranslation compatibility).
     class _GenericMixin:
-        """Runtime placeholder for Generic[ModelT] that supports subscripting."""
+        """Runtime placeholder for Generic[ModelT] that supports subscripting.
+
+        This class serves as a base for mixin classes to enable type checking support
+        while avoiding runtime issues with __class__ assignment (e.g., when used with
+        django-modeltranslation).
+        """
         def __class_getitem__(cls, item: Any) -> type[_GenericMixin]:
             return cls
 
@@ -76,7 +82,7 @@ else:
             return _iter_inheritance_queryset(self.queryset)
 
 
-class InheritanceQuerySetMixin(_GenericMixin):
+class InheritanceQuerySetMixin(_GenericMixin, Generic[ModelT]):
 
     model: type[ModelT]
     subclasses: Sequence[str]
@@ -239,7 +245,7 @@ class InheritanceQuerySet(InheritanceQuerySetMixin[ModelT], QuerySet[ModelT]):
         )
 
 
-class InheritanceManagerMixin(_GenericMixin):
+class InheritanceManagerMixin(_GenericMixin, Generic[ModelT]):
     _queryset_class = InheritanceQuerySet
 
     if TYPE_CHECKING:
@@ -335,7 +341,7 @@ class InheritanceManager(InheritanceManagerMixin[ModelT], models.Manager[ModelT]
     pass
 
 
-class QueryManagerMixin(_GenericMixin):
+class QueryManagerMixin(_GenericMixin, Generic[ModelT]):
 
     @overload
     def __init__(self, *args: models.Q):
@@ -369,7 +375,7 @@ class QueryManager(QueryManagerMixin[ModelT], models.Manager[ModelT]):  # type: 
     pass
 
 
-class SoftDeletableQuerySetMixin(_GenericMixin):
+class SoftDeletableQuerySetMixin(_GenericMixin, Generic[ModelT]):
     """
     QuerySet for SoftDeletableModel. Instead of removing instance sets
     its ``is_removed`` field to True.
@@ -389,7 +395,7 @@ class SoftDeletableQuerySet(SoftDeletableQuerySetMixin[ModelT], QuerySet[ModelT]
     pass
 
 
-class SoftDeletableManagerMixin(_GenericMixin):
+class SoftDeletableManagerMixin(_GenericMixin, Generic[ModelT]):
     """
     Manager that limits the queryset by default to show only not removed
     instances of model.

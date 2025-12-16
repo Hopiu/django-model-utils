@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 from django.db import models
 from django.test import SimpleTestCase
 
 from model_utils.managers import (
     InheritanceManager,
-    JoinManager,
     QueryManager,
     SoftDeletableManager,
 )
+
+if not TYPE_CHECKING:
+    from model_utils.managers import JoinManager
 
 
 class ManagerClassAssignmentTests(SimpleTestCase):
@@ -27,7 +31,7 @@ class ManagerClassAssignmentTests(SimpleTestCase):
 
     def test_softdeletable_manager_class_can_be_reassigned(self) -> None:
         """SoftDeletableManager instances support __class__ reassignment."""
-        manager = SoftDeletableManager()
+        manager: Any = SoftDeletableManager()
 
         class PatchedManager(SoftDeletableManager):
             pass
@@ -37,7 +41,7 @@ class ManagerClassAssignmentTests(SimpleTestCase):
 
     def test_inheritance_manager_class_can_be_reassigned(self) -> None:
         """InheritanceManager instances support __class__ reassignment."""
-        manager = InheritanceManager()
+        manager: Any = InheritanceManager()
 
         class PatchedManager(InheritanceManager):
             pass
@@ -47,7 +51,7 @@ class ManagerClassAssignmentTests(SimpleTestCase):
 
     def test_query_manager_class_can_be_reassigned(self) -> None:
         """QueryManager instances support __class__ reassignment."""
-        manager = QueryManager(is_active=True)
+        manager: Any = QueryManager(is_active=True)
 
         class PatchedManager(models.Manager):
             pass
@@ -57,7 +61,7 @@ class ManagerClassAssignmentTests(SimpleTestCase):
 
     def test_join_manager_class_can_be_reassigned(self) -> None:
         """JoinManager instances support __class__ reassignment."""
-        manager = JoinManager()
+        manager: Any = JoinManager()  # type: ignore[name-defined]
 
         class PatchedManager(models.Manager):
             pass
